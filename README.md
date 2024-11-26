@@ -15,7 +15,7 @@ This is a type of software architecture pattern where the application is divided
 7. [Route 53](#Route-53)
 8. [Wordpress Setup](#wordpress-setup)
 9. [Crontab Setup](#crontab-setup)
-10. [Application Loadbalancer](#application-loadbalancer)
+10. [Application Load-balancer](#application-load-balancer)
 11. [Auto-scaling Group](#auto-scaling-group)
 12. [Testing](#testing)
 
@@ -99,3 +99,68 @@ __NB__ the CIDR blocks must not overlap but fall within the same block of the VP
 ![](/img/32.backend-sg.png)
 33. Under type, choose SSh and MYSQL and allow both source from front end security group, then click create
 ![](/img/33.edit-rule-be.png)
+
+## S3 Buckets
+### Two buckets will be created in this stage.
+1. One to hold the application's media which will be publicly accessible
+2. The other for the application's code, this bucket will not be publicly accessible.
+
+#### steps
+1. In the search bar, type S3 and click on the S3 bar
+![](/img/34.select-s3.png)
+2. Create bucket, this will be our media bucket
+![](/img/35.create-bucket.png)
+3. Give a unique name to the bucket 
+![](/img/35name-bucket.png)
+4. Uncheck "Block all public access" and check the acknowledgement
+![](/img/36.pub-access.png)
+5. Click the newly created bucket and choose permissions
+![](/img/37.permissions.png)
+6. Under bucket policy, click edit
+![](/img/38.edit-policy.png)
+7. Click on policy generator
+![](/img/39.gen-policy.png)
+8. Choose the required criteria for the policy
+![](/img/40.gen-policy2.png)
+![](/img/40.gen-policy2b.png)
+9. Click generate policy
+![](/img/40.gen-policy2c.png)
+10. copy the generated policy and paste on the page of the bucket policy
+![](/img/41.paste-policy.png)
+11. Create a second bucket, this will be the code bucket
+![](/img/101.create-another-bucket.png)
+12. Also give it a unique name 
+![](/img/102.name-bucket.png)
+13. ensure that "Block all public access" is checked
+![](/img/103.block-pub-access.png)
+14. Click create
+![](/img/104.create.png)
+
+
+## Relational Database
+We will MYSQL engine for our RDS for this project.
+
+#### steps
+1. Search for RDS in the search bar
+![](/img/42.search-rds.png)
+2. Click on subnet groups and create a DataBase subnet group
+![](/img/43.create-subnetgrp.png)
+3. Give it a name, a description and choose your VPC
+![](/img/44.fill-details.png)
+4. Select your availability zones and the required subnets, then click create
+![](/img/45.az-subnets.png)
+5. After, click on create database
+![](/img/46create-databse.png)
+6. Choose a database creation method and your desired engine
+![](/img/47.choose-engine.png)
+7. Select your availability zone type
+![](/img/48.multi-az.png)
+8. Create a master username and password
+![](/img/49.credentials.png)
+9. Fill in the other details and choose VPC and subnet group
+![](/img/50.details.png)
+10. Choose your security group (this will be the Backend SG)
+![](/img/51.be-sg.png)
+11. Under additional configuration, give an initial name to your database 
+![](/img/52.choose-db-name.png), this will be the name of your db
+12. click create database ![](/img/53.create.png)
