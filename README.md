@@ -13,7 +13,7 @@ This is a type of software architecture pattern where the application is divided
 5. [IAM Role](#IAM-Role)
 6. [Webserver](#webserver)
 7. [Route 53](#Route-53)
-8. [Wordpress Setup](#wordpress-setup)
+8. [Wordpress Setup](#wordpress-Setup)
 9. [Crontab Setup](#crontab-setup)
 10. [Application Load-balancer](#application-load-balancer)
 11. [Auto-scaling Group](#auto-scaling-group)
@@ -137,8 +137,9 @@ __NB__ the CIDR blocks must not overlap but fall within the same block of the VP
 ![](/img/104.create.png)
 
 
+
 ## Relational Database
-We will MYSQL engine for our RDS for this project.
+We will use MYSQL engine for our RDS for this project.
 
 #### steps
 1. Search for RDS in the search bar
@@ -164,3 +165,145 @@ We will MYSQL engine for our RDS for this project.
 11. Under additional configuration, give an initial name to your database 
 ![](/img/52.choose-db-name.png), this will be the name of your db
 12. click create database ![](/img/53.create.png)
+
+## Cloudfront Distribution
+
+#### steps
+1. Search for cloudfront in the search bar
+![](/img/54search-cloudfront.png)
+2. Click on create cloudfront distribution
+![](/img/55.create-distr.png)
+3. Under the origin, choose the media storage bucket 
+![](/img/56.choose-media-bucket.png)
+4. Enable Security protections
+![](/img/57.enable-security.png)
+5. Click create distribution
+![](/img/58.create.png)
+6. Note the distribution domain name
+![](/img/107.cloudfront-domainname.png)
+
+## IAM Role
+Here, we will create an IAM role with S3 full permission to allow our servers(EC2) access the bucket on our behalf
+
+#### steps
+1. Under services, search for IAM 
+![](/img/59.serach-iam.png)
+2. Click on roles on the side menu then click on create role 
+![](/img/60.sarch-roles.png)
+3. Select your trusted entity
+![](/img/61.choose-service.png)
+4. Choose a use case, click next
+![](/img/62.choose-usecase.png)
+5. Select permission type, then click next
+![](/img/63.choose-s3.png)
+6. Create role
+![](/img/64.create-role.png)
+
+
+## Webserver
+1. Search for EC2 in the search bar
+![](/img/65.search-ec2.png)
+2. On the side menu, click instances then launch instances
+![](/img/66.launch-instance.png)
+3. Give the instance a name and choose required AMI (OS)
+![](/img/67.choose-img.png)
+4. Select your instance type and a key pair 
+![](/img/68.instance-kp.png)
+5. Choose your VPC, enable public IP and choose SG (front end SG)
+![](/img/69.fill-details.png)
+6. Under advanced details, select the IAM role created in the last stage
+![](/img/70.IAM-role.png)
+7. scroll down to userdata and paste this [userdata](/userdata.sh) this userdata allows us to install a specific version of wordpress v 6.1.1. which is required for this project
+![](/img/71.input-userdata.png) 
+8. Click on launch instance
+![](/img/72.launch-inst.png)
+
+## Route 53
+Requirement for this stage 
+- A registered domain name
+- propagated Domain name 
+
+#### steps
+1. In the search bar, type Route 53
+![](/img/73.route-53.png)
+2. On the side bar, click hosted zone
+![](/img/74.hosted-zone.png)
+3. Create hosted zone
+![](/img/75.create-hz.png)
+4. Enter your domain name 
+![](/img/76.domain-name.png)
+5. Click create hosted zone
+![](/img/77.create.png)
+
+## Wordpress Setup
+
+1. Copy the EC2 public IP into your browser
+![](/img/78.copy-ip.png)
+![](/img/79.test-ip.png)
+2. Create the application credentials and install wordpress
+![](/img/80.install-wp.png)
+3. Click on login 
+![](/img/81.success-page.png)
+4. Enter the credentials created in step 2 and click login
+![](/img/82.log-in.png)
+5. You will see the application dashboard
+![](/img/83.homepage.png)
+6. In the left panel, click on media
+![](/img/84.select-media.png)
+7. Click on add new
+![](/img/85.add-new.png)
+8. Click on select files 
+![](/img/86.select-files.png)
+9. Upload a media of your choice 
+10. In the left panel, select posts, and add new
+![](/img/87.new-post.png) 
+11. Add a title and click on the plus button to add more segments (we used image and paragraph for this project)
+![](/img/88.choose-title.png)
+12. Click on image
+![](/img/89.select-image.png)
+13. Click on media library 
+![](/img/90.select-media-lib.png)
+14. Select the image to be uploaded
+![](/img/91.choose-img.png)
+15. Click on publish 
+![](/img/92.publish.png)
+16. Click on view post, you will be able to view your post
+![](/img/93.view-post.png)
+![](/img/success-application.png)
+
+## Crontab Setup
+
+#### steps
+1. SSH into the instance to install AWS CLI 
+![](/img/94ssh-webserver.png)
+2. Install AWS CLI using below command 
+``` bash
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+sudo yum install unzip -y
+unzip awscliv2.zip
+sudo ./aws/install
+```
+![](/img/95install.png)
+![](/img/96.ongoing1.png)
+![](/img/98.successful.png)
+3. Using AWS CLI, copy all media from upload directory on the EC2 instance to the S3 media bucket
+```bash
+aws s3 cp --recursive /var/www/html/wp-content/uploads/ s3://your-media-bucket-name
+```
+![](/img/99.copy-to-s3.png)
+4. Copy the wordpress application code to S3 code bucket 
+![](/img/105.cp-all-to-s3.png)
+5. Synchronize /var/www/html directory with the code bucket
+```bash
+aws s3 sync /var/www/html/ s3://your-code-bucket-name
+```
+![](/img/106.sync-with-s3.png)
+6. On the terminal, cd into the html dir and create a file called .htaccess
+![](/img/108.create-htaccess.png) 
+7. Paste below code inside but modify the domain name to your cloudfront domain name
+```bash
+Options +FollowSymlinks
+RewriteEngine on
+rewriterule ^wp-content/uploads/(.*)$ https://your-cloudfront-endpoint/$1 [r=301,nc]
+```
+8. 
