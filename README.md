@@ -301,9 +301,56 @@ aws s3 sync /var/www/html/ s3://your-code-bucket-name
 6. On the terminal, cd into the html dir and create a file called .htaccess
 ![](/img/108.create-htaccess.png) 
 7. Paste below code inside but modify the domain name to your cloudfront domain name
+    ```bash
+    Options +FollowSymlinks
+    RewriteEngine on
+    rewriterule ^wp-content/uploads/(.*)$ https://your-cloudfront-endpoint/$1 [r=301,nc]
+    ```
+![](/img/ran2.png)
+8. Update the Apache config file to allow redirection of all content in the upload directory to be served through cloudfront endpoint. This is done by changing the `AllowOverride None` to `AllowOverride All`
 ```bash
-Options +FollowSymlinks
-RewriteEngine on
-rewriterule ^wp-content/uploads/(.*)$ https://your-cloudfront-endpoint/$1 [r=301,nc]
+sudo vi /etc/httpd/conf/httpd.conf
 ```
-8. 
+![](/img/109.modify-conf.png)
+![](/img/110.change.png)
+9. Create a crontab that will synchronize the code bucket with /var/www/html by executing below commands 
+```bash
+cd /etc
+sudo vi crontab
+```
+![](/img/111.create-crontab.png)
+10. Paste the code below in the crontab file and save
+```bash
+* * * * * ec2-user /usr/local/bin/aws s3 sync --delete s3://your-code-bucket-name /var/www/html/
+```
+![](/img/112.modify-crontab.png)
+
+
+## Application Load-Balancer
+#### steps
+1. Back into our console, on the left hand panel, scroll to Load Balancers<br>
+![](/img/113.create-loadbalancer.png)
+2. click on create
+![](/img/114.create-loadbalancer.png)
+3. Select the Application Load-Balancer and click create
+![](/img/115.create-alb.png)
+4. Give it a name and choose internet facing
+![](/img/116.state-name.png)
+5. Under mapping, choose your VPC and your availability zones and subnets
+![](/img/117.choose-subnets.png)
+6. Select your security group
+![](/img/118.choose-sg.png)
+7. click on create target group
+![](/img/119.create-tg.png)
+8. Choose instances as your target type
+![](/img/120.choose-instances.png)
+9. click on next
+![](/img/121.create.png)
+10. After creating your target group, choose the same target group here
+![](/img/122.choose-tg.png)
+11. create load balancer
+![](/img/123.create.png)
+12. Make sure your load balancer is Active then copy the DNS name and paste on your browser
+![](/img/124.cp-dns-name.png)
+
+
