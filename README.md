@@ -352,5 +352,83 @@ sudo vi crontab
 ![](/img/123.create.png)
 12. Make sure your load balancer is Active then copy the DNS name and paste on your browser
 ![](/img/124.cp-dns-name.png)
+![](/img/124b.confirm-ALB.png)
+13. Go to route 53 on the search menu and create a record for the load-balancer in your hosted zone
+![](/img/125.create-record.png)
+14. Enable alias, select from the dropdown __Alias to Application and Classic Load Balancer__ 
+![](/img/126.choose-ALB.png)
+15. Select your region and in the search bar, choose your load balancer DNS, click on create records
+![](/img/127.fill-details.png)
+16. Test the configuration by typing your domain name in the browser.
+![](/img/128.confirm-domainname.png)
+
+## Auto-scaling Group
+
+#### steps
+1. Create an AMI from the instance, on the EC2 dashboard, select your instance and click on __Action__, select __Images and Templates__ and then __create image__
+![](/img/129.create-image.png)
+2. Give your image a name 
+![](/img/130.name-image.png)
+3. Click on create 
+![](/img/131.create.png)
+4. From the left panel, select auto scaling group
+and  create auto scaling group
+![](/img/132.create-asg.png)
+5. Give your auto scaling group a name and create a launch template 
+![](/img/133.create-launch-template.png)
+6. Give your launch template a name
+![](/img/134.choose-name.png)
+7. Under AMI, select __My AMIs__ and choose the image earlier created 
+![](/img/135.choose-template.png)
+8. Select your instance type and the key pair
+![](/img/136.instance-type-key.png)
+9. Under Network Settings, select the front end security group
+![](/img/137.select-sg.png)
+10. Scroll to advanced details and choose your IAM role under IAM instance profile then click create launch template
+![](/img/138.choose-IAM.png)
+![](/img/139.create.png)
+11. Back to the auto scaling group, under the launch template, choose the newly created launch template, then click next
+![](/img/140.select-LT.png)
+12. Under network, select your VPC, availability zones and the subnets(public subnets)
+![](/img/141.choose-vpc.png)
+13. Select attach an existing load balancer and choose your target group
+![](/img/142.choose-loadbalancer.png)
+14. Define your scaling group size
+![](/img/143.configure-capacity.png)
+15. click next
+![](/img/144.click-next.png)
+16. Give it a tag(optional)
+![](/img/145.add-tags.png)
+17. Review your choices and create
+![](/img/146.review-create.png)
+
+
+## Testing
+
+### Stress test
+
+1. Copy one of the ASG instance IP address and SSH into it via the terminal
+![](/img/148.choose-instance.png)
+![](/img/149.ssh-into.png)
+2. Execute  ```top``` command in the terminal to access the CPU processes and usage
+```bash
+top
+```
+![](/img/150.initial-cpu-usage.png)
+3. Now run the sha1sum command to spike up the CPU 
+```bash
+sha1sum /dev/zero &
+```
+![](/img/150.stress-cmd.png)
+![](/img/151.cpu-usage-2.png)
+4. After a few minutes, ASG spins up a new instance
+![](/img/152.new-instance.png)
+5. From the activity tab under history, you will see a new instance been created based off of the stress induced
+![](/img/153.activity-history.png)
+6. Go into the spiked up instance and kill the sha1sum process(stress-inducer), then run the top command again
+![](/img/154.kill-stress.png)
+7. ASG scales back in by terminating some instances not needed
+![](/img/155.terminating.png).
+
 
 
